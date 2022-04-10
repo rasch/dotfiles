@@ -1,0 +1,48 @@
+#!/bin/sh
+
+container=$(buildah from --pull localhost/kakoune:latest)
+
+# I'd rather set the PAGER myself
+buildah run -- "$container" \
+  sed -i '/PAGER/d' /etc/profile
+
+# Install packages from pkglist
+# shellcheck disable=SC2046
+buildah run -- "$container" \
+  apk --no-cache add $(cat pkglist)
+
+# Copy configuration files into the container
+buildah copy "$container" config /tmp/
+
+# Set up shell profile
+# shellcheck disable=SC2016
+buildah run -- "$container" \
+  sh -c 'cat /tmp/*/.profile | sed -n "/^[^#]/p" > "$HOME"/.profile'
+
+# Set up shell environment
+# shellcheck disable=SC2016
+buildah run -- "$container" \
+  sh -c 'cat /tmp/*/.env | sed -n "/^[^#]/p" > "$HOME"/.env'
+
+# Initialize addition configuration
+buildah run -- "$container" \
+  sh -c 'cat /tmp/*/init.sh | sh'
+
+# Clean up configuration files
+buildah run -- "$container" \
+  sh -c 'rm -rf /tmp/*'
+
+# Configure default image environment
+# shellcheck disable=SC2016
+buildah config \
+  --env BROWSER=links \
+  --env EDITOR=kak \
+  --env LANG=en_US.UTF-8 \
+  --env PAGER=more \
+  --env SHELL=/bin/sh \
+  --env TERM=xterm-256color \
+  --cmd '["/bin/sh", "-lc", "tmux new-session -s $HOSTNAME"]' \
+  "$container"
+
+buildah commit "$container" dotfiles
+buildah rm "$container"

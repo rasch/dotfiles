@@ -1,0 +1,25 @@
+#!/bin/sh
+
+lint() {
+  shellcheck --shell=sh \
+    ./build \
+    ./config/*/.env \
+    ./config/*/.profile \
+    ./config/*/init.sh
+}
+
+build() {
+  sh ./build
+}
+
+default() {
+  help
+}
+
+help() {
+  echo "$0 <task> <args>"
+  echo "Tasks:"
+  sed -n 's/^\([a-z][a-z_]\+\)() {/\1/p' "$0" | cat -n
+}
+
+"${@:-default}"
