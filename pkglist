@@ -7,6 +7,8 @@ curl
 curl-doc
 darkhttpd
 editorconfig
+exa
+exa-doc
 file
 file-doc
 git
@@ -43,8 +45,6 @@ shellcheck
 shellcheck-doc
 tmux
 tmux-doc
-tree
-tree-doc
 weechat
 weechat-doc
 xclip
